@@ -1,8 +1,9 @@
 from kivy.app import App
-from kivy.resources import resource_add_path, resource_find
 from kivy.uix.widget import Widget
 from kivy.properties import ObjectProperty
 from kivy.lang import Builder
+from kivy.uix.screenmanager import ScreenManager, Screen
+from kivy.resources import resource_add_path, resource_find
 from kivy.core.window import Window
 import os, sys, re
 import shutil
@@ -25,15 +26,23 @@ class YRloader_GUI(Screen):
                 yt = YouTube(shref)
                 self.ids.img_previvev.background_color = (24/255, 35/255, 55/255, 0)
                 self.ids.img_previvev.source = yt.thumbnail_url
-                return core_activate(shref, self.ids.video_res.text, YRloader_GUI.dowload_folder)
+                return core_activate(shref, self.ids.video_res.text, YRloader_GUI.dowload_folder, self.ids.video_music.text)
 
     def spinner_clicked(self, value):
         self.ids.video_res.text = f'{value}'
 
+    def music_spinner(self, value):
+        self.ids.video_music.text = f'{value}'
 
-def core_activate(a, b, c):
-    tread_core = YRloader_core(a, b, c)
-    return lambda: threading.Thread(target = tread_core, args = ()).start()
+
+def core_activate(a, b, c, d):
+    if d == "mp4":
+        tread_core = YRloader_core(a, b, c)
+        return lambda mv: threading.Thread(target = tread_core, args = ()).start()
+    else:
+        tread_core = Fast_music(a, c)
+        return lambda ms: threading.Thread(target = tread_core, args = ()).start()
+
 
 
 class SecondScreen(Screen):
@@ -65,6 +74,12 @@ def convert(fil1, fil2, rname, path_f):
     os.remove(fil2)
     shutil.move(rname, path_f)
 
+def extract(fil1, rname, path_f):
+    codec = "copy"
+    subprocess.run(f"ffmpeg -i {fil1} -q:a 0 -map a {rname}")
+    os.remove(fil1)
+    shutil.move(rname, path_f)
+
 class YRloader_core:
     """ YRloader dowloander functional """
     def __init__(self, video_url, video_res, filename):
@@ -72,7 +87,7 @@ class YRloader_core:
         self.video_res = video_res
         self.filename = filename
         not_full = ["480p", "1080p", "1440p", "2160p"]
-        yt = YouTube(self.video_url )
+        yt = YouTube(self.video_url)
         if self.video_res in not_full:
             self.go()
         else:
@@ -94,6 +109,15 @@ class YRloader_core:
         raname = (f"video{str(random.randint(1, 100))}.mp4")
         return convert(file1, file2, raname, self.filename)
 
+class Fast_music:
+    def __init__(self, video_url, filename):
+        self.video_url = video_url
+        self.filename = filename
+        yt = YouTube(self.video_url)
+        raname = (f"music{str(random.randint(1, 100))}.mp3")
+        file1 = yt.streams.filter(only_audio=True).first().download(filename="muve.mp4")
+        print(file1)
+        return extract(file1, raname, self.filename)
 
 
 class YRloader(App):
