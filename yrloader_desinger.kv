@@ -47,6 +47,17 @@ WindowManager:
       height: 60
       size_hint_x: 0.6
 
+      Spinner:
+        id: video_music
+        pos_hint: {'center_x':0.1, 'y':0}
+        size_hint: (0.1, 1)
+        background_color: (252/255, 254/255, 249/255, 0.5)
+        text: "mp4"
+        font_size: 18
+        values: ["mp3", "mp4"]
+        on_text: root.spinner_clicked(video_res.text)
+
+
       TextInput:
         id: video_shref
         pos_hint: {'center_x':0.5, 'y':0}
